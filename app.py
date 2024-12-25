@@ -102,17 +102,16 @@ def fetch_weather_data(cities, forecast_days):
             if not location_key:
                 errors.append(f"Не удалось найти город <<{city}>>")
                 continue
-            forecast = weather.get_forecast_data_request(location_key, days=forecast_days)
+            forecast = weather.get_forecast_data(location_key, days=forecast_days)
             if not forecast:
                 errors.append(f"Не удалось получить прогноз для города <<{city}>>")
                 continue
-            weather_data[city] = {"forecast": forecast, "latitude": lat, "longitude": lon}
+            weather_data[city] = {"forecast": forecast, "lat": lat, "lon": lon}
             city_coordinates.append({"city": city, "lat": lat, "lon": lon})
         except APIQuotaExceededError:
             errors.append(f"Превышена квота запросов для API по городу <<{city}>>")
         except Exception as excep:
             errors.append(f"Ошибка обработки города <<{city}>>: {str(excep)}")
-
     return weather_data, city_coordinates, errors
 
 
@@ -156,7 +155,8 @@ def create_temperature_fig(city, dates, min_temps, max_temps):
     return dcc.Graph(figure=go.Figure(data=[
         go.Scatter(x=dates, y=min_temps, mode="lines+markers", name="Мин. температура"),
         go.Scatter(x=dates, y=max_temps, mode="lines+markers", name="Макс. температура")
-    ], layout=go.Layout(title=f"Температура в городе '{city}'", xaxis={"title": "Дата"},
+    ], layout=go.Layout(title=f"Температура в городе '{city}'",
+                        xaxis={"title": "Дата"},
                         yaxis={"title": "Температура (°C)"})))
 
 
@@ -170,7 +170,8 @@ def create_wind_fig(city, dates, wind_speeds):
 def create_precipitation_fig(city, dates, precipitation_probs):
     return dcc.Graph(figure=go.Figure(data=[go.Bar(x=dates, y=precipitation_probs, name="Вероятность осадков")],
                                       layout=go.Layout(title=f"Вероятность дождя в городе '{city}'",
-                                                       xaxis={"title": "Дата"}, yaxis={"title": "Вероятность (%)"})))
+                                                       xaxis={"title": "Дата"},
+                                                       yaxis={"title": "Вероятность (%)"})))
 
 
 def generate_weather_table(weather_data, forecast_days):

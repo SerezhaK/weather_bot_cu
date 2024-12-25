@@ -6,7 +6,7 @@ class Weather:
         self.accuweather_key = accuweather_api_key
 
     def get_forecast_data(self, location_key: str, days: int = 5) -> dict:
-        forecast_url = f"https://dataservice.accuweather.com/forecasts/v1/daily/{days}day/{location_key}"
+        forecast_url = f"https://dataservice.accuweather.com/forecasts/v1/daily/{5}day/{location_key}"
         params = {
             "apikey": self.accuweather_key,
             "language": "ru",

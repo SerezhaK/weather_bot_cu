@@ -23,24 +23,29 @@ class Location:
 
     def get_coordinates(self, city: str) -> tuple:
         data = self._request_to_yandex(city)
-        try:
-            coords = data['response']['GeoObjectCollection']['featureMember'][0]['GeoObject']['Point']['pos']
-            lon, lat = map(float, coords.split(' '))
-            return lat, lon
-        except (IndexError, KeyError) as e:
-            raise ValueError(f"Ошибка получения координат для города '{city}': {e}")
+        if data:
+            try:
+                coords = data['response']['GeoObjectCollection']['featureMember'][0]['GeoObject']['Point']['pos']
+                find_city = data['response']['GeoObjectCollection']['featureMember'][0]['GeoObject']['name']
+                lon, lat = coords.split(' ')
+                lat = float(lat)
+                lon = float(lon)
+                return lat, lon
+            except Exception as e:
+                raise Exception(f"Ошибка получения координат: {e}")
+        return None, None
 
     def get_location_key(self, lat: float, lon: float) -> str:
-        params = {
-            'apikey': self.accuweather_key,
-            'q': f'{lat},{lon}'
-        }
-        response = requests.get('https://dataservice.accuweather.com/locations/v1/cities/geoposition/search',
-                                params=params)
+        try:
+            params = {
+                'apikey': self.accuweather_key,
+                'q': f'{lat},{lon}'
+            }
+            response = requests.get('https://dataservice.accuweather.com/locations/v1/cities/geoposition/search',
+                                    params=params)
 
-        if response.status_code == 503:
-            raise APIQuotaExceededError("Запросы к API закончились")
-        elif response.status_code in (200, 201):
+            if response.status_code == 503:
+                raise APIQuotaExceededError("Запросы к API закончились")
             return response.json()['Key']
-
-        raise Exception(f'Ошибка при получении данных. Код ошибки: {response.status_code}')
+        except Exception as e:
+            raise Exception(f'Ошибка при получении данных. Код ошибки: {response.status_code}')
