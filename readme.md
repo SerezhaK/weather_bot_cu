@@ -1,5 +1,6 @@
 # Weather Forecast Application
 Third Homework-Project for Central University :)
+It's not bot actually)
 
 ## Requirements
 - Python >3.0
@@ -23,7 +24,6 @@ Third Homework-Project for Central University :)
    ```
    ACCUWEATHER_API_KEY=your_accuweather_api_key
    YANDEX_API_KEY=your_yandex_api_key
-   TG_TOKEN=your_telegram_token
    ```
 
 ## Running the Application
