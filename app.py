@@ -10,8 +10,7 @@ from dotenv import load_dotenv
 from utils.location import Location
 from utils.weather import Weather
 
-env_path = Path("venv") / ".env"
-load_dotenv(dotenv_path=env_path)
+load_dotenv(dotenv_path=Path("venv") / ".env")
 
 
 class APIQuotaExceededError(Exception):
@@ -19,32 +18,123 @@ class APIQuotaExceededError(Exception):
 
 
 ACCUWEATHER_API_KEY = os.getenv('ACCUWEATHER_API_KEY')
-YANDEX_API_KEY = os.getenv('YANDEX_API_KEY')
 
 app = Dash(__name__)
 
-location = Location(accuweather_api_key=ACCUWEATHER_API_KEY, yandex_api_key=YANDEX_API_KEY)
+location = Location(accuweather_api_key=ACCUWEATHER_API_KEY)
 weather = Weather(accuweather_api_key=ACCUWEATHER_API_KEY)
 
-app.layout = html.Div([
-    html.H1("Прогноз погоды"),
-    html.Div([
-        html.Label("Введите города маршрута:"),
-        html.Div([dcc.Input(id={"type": "city-input", "index": 0}, type="text", placeholder="Город №1")],
-                 id="city-input-container"),
-        html.Button("Добавить город в маршрут", id="add-city", n_clicks=0),
-    ]),
-    html.Div([
-        html.Label("Выберите, на сколько дней построить прогноз:"),
-        dcc.Dropdown(
-            id="forecast-days",
-            options=[{"label": f"{i} {'день' if i == 1 else 'дня'}", "value": i} for i in range(1, 6)],
-            value=1,
+app.layout = html.Div(
+    style={
+        'fontFamily': 'Arial, sans-serif',
+        'backgroundColor': '#f0f8ff',  # Light background color
+        'padding': '20px',
+        'borderRadius': '8px',
+        'boxShadow': '0 4px 8px rgba(0, 0, 0, 0.1)',
+        'maxWidth': '600px',
+        'margin': 'auto'
+    },
+    children=[
+        # Main title
+        html.H1(
+            "Прогноз погоды",
+            style={
+                'textAlign': 'center',
+                'color': '#333',
+                'marginBottom': '30px'
+            }
         ),
-    ]),
-    html.Button("Получить прогноз", id="submit-button", n_clicks=0),
-    html.Div(id="output-container"),
-])
+
+        # City input section
+        html.Div(
+            children=[
+                html.Label("Введите города маршрута:", style={'fontWeight': 'bold'}),
+                html.Div(
+                    children=[
+                        dcc.Input(
+                            id={"type": "city-input", "index": 0},
+                            type="text",
+                            placeholder="Город №1",
+                            style={
+                                'width': '100%',  # Full width
+                                'padding': '10px',
+                                'marginBottom': '10px',
+                                'border': '1px solid #ccc',
+                                'borderRadius': '4px'
+                            }
+                        )
+                    ],
+                    id="city-input-container"
+                ),
+                html.Button(
+                    "Добавить город в маршрут",
+                    id="add-city",
+                    n_clicks=0,
+                    style={
+                        'backgroundColor': '#4CAF50',  # Green background
+                        'color': 'white',
+                        'padding': '10px 15px',
+                        'border': 'none',
+                        'borderRadius': '4px',
+                        'cursor': 'pointer',
+                        'marginTop': '10px'
+                    }
+                )
+            ],
+            style={"marginBottom": "20px"}
+        ),
+
+        # Forecast days selection section
+        html.Div(
+            children=[
+                html.Label("Выберите, на сколько дней построить прогноз:", style={'fontWeight': 'bold'}),
+                dcc.Dropdown(
+                    id="forecast-days",
+                    options=[
+                        {"label": f"{i} {'день' if i == 1 else 'дня'}", "value": i} for i in range(1, 6)
+                    ],
+                    value=1,
+                    clearable=False,
+                    style={
+                        'width': '100%',  # Full width
+                        'padding': '10px',
+                        'borderRadius': '4px',
+                        'border': '1px solid #ccc'
+                    }
+                ),
+            ],
+            style={"marginBottom": "20px"}
+        ),
+
+        # Submit button
+        html.Button(
+            "Получить прогноз",
+            id="submit-button",
+            n_clicks=0,
+            style={
+                'backgroundColor': '#008CBA',  # Blue background
+                'color': 'white',
+                'padding': '10px 15px',
+                'border': 'none',
+                'borderRadius': '4px',
+                'cursor': 'pointer',
+                'width': '100%'  # Full width
+            }
+        ),
+
+        # Output container for displaying results
+        html.Div(
+            id="output-container",
+            style={
+                'marginTop': '20px',
+                'padding': '10px',
+                'border': '1px solid #ccc',
+                'borderRadius': '4px',
+                'backgroundColor': '#fff'
+            }
+        )
+    ]
+)
 
 
 @app.callback(
@@ -97,8 +187,7 @@ def fetch_weather_data(cities, forecast_days):
 
     for city in cities:
         try:
-            lat, lon = location.get_coordinates(city)
-            location_key = location.get_location_key(lat, lon)
+            location_key, lat, lon = location.get_location_key_lat_lon(city)
             if not location_key:
                 errors.append(f"Не удалось найти город <<{city}>>")
                 continue

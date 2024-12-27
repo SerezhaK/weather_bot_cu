@@ -6,34 +6,31 @@ class APIQuotaExceededError(Exception):
 
 
 class Location:
-    def __init__(self, accuweather_api_key: str, yandex_api_key: str):
-        self.yandex_key = yandex_api_key
+    def __init__(self, accuweather_api_key):
         self.accuweather_key = accuweather_api_key
 
-    def _request_to_yandex(self, city: str) -> dict:
-        params = {
-            'apikey': self.yandex_key,
-            'geocode': city,
-            'lang': 'ru_RU',
-            'format': 'json'
-        }
-        response = requests.get('https://geocode-maps.yandex.ru/1.x', params=params)
-        response.raise_for_status()
-        return response.json()
+    def get_location_key_lat_lon(self, city):
+        try:
+            location_url = f"https://dataservice.accuweather.com/locations/v1/cities/search?"
+            params = {
+                "apikey": self.accuweather_key,
+                "language": "ru",
+                "q": city,
+                "metric": "true",
+            }
+            response = requests.get(location_url, params=params)
+            data = response.json()
+            print("lat:", data[0]['GeoPosition']['Latitude'])
+            print("lom:", data[0]['GeoPosition']['Longitude'])
 
-    def get_coordinates(self, city: str) -> tuple:
-        data = self._request_to_yandex(city)
-        if data:
-            try:
-                coords = data['response']['GeoObjectCollection']['featureMember'][0]['GeoObject']['Point']['pos']
-                find_city = data['response']['GeoObjectCollection']['featureMember'][0]['GeoObject']['name']
-                lon, lat = coords.split(' ')
-                lat = float(lat)
-                lon = float(lon)
-                return lat, lon
-            except Exception as e:
-                raise Exception(f"Ошибка получения координат: {e}")
-        return None, None
+            return data[0]["Key"], data[0]['GeoPosition']['Latitude'], data[0]['GeoPosition']['Longitude']
+        except APIQuotaExceededError as e:
+            print(f"Обработка APIQuotaExceededError: {e}")
+            raise
+        except KeyError as e:
+            raise Exception(f"Ошибка получения ключа локации: {e}")
+        except Exception as e:
+            raise Exception(f"Ошибка запроса к API AccuWeather: {e}")
 
     def get_location_key(self, lat: float, lon: float) -> str:
         try:

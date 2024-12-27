@@ -1,5 +1,6 @@
 # Weather Forecast Application
 Third Homework-Project for Central University :)
+
 It's not bot actually)
 
 ## Requirements
@@ -23,7 +24,6 @@ It's not bot actually)
 3. Set up `.env` file:
    ```
    ACCUWEATHER_API_KEY=your_accuweather_api_key
-   YANDEX_API_KEY=your_yandex_api_key
    ```
 
 ## Running the Application
